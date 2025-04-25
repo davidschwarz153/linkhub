@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Link Hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              "amazon-dark": "#232F3E",
+              "amazon-light": "#37475A",
+              "amazon-orange": "#FF9900",
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      body {
+        margin: 0;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+      }
+      .video-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: -1;
+      }
+      .video-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+          to bottom,
+          rgba(35, 47, 62, 0.95),
+          rgba(35, 47, 62, 0.4)
+        );
+        z-index: -1;
+      }
+      .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        z-index: 50;
+      }
+      .modal.show {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .fade-in {
+        animation: fadeIn 0.3s ease-in-out;
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: scale(0.9);
+        }
+        to {
+          opacity: 1;
+          transform: scale(1);
+        }
+      }
+      .admin-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        z-index: 50;
+      }
+      .admin-modal.show {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .login-form {
+        display: none;
+      }
+      .login-form.show {
+        display: block;
+      }
+      .admin-content {
+        display: none;
+      }
+      .admin-content.show {
+        display: block;
+      }
+    </style>
+  </head>
+  <body class="bg-amazon-dark text-white min-h-screen">
+    <!-- Video Background -->
+    <div class="video-container">
+      <video
+        autoplay
+        loop
+        muted
+        class="fixed top-0 left-0 w-full h-full object-cover"
+      >
+        <source
+          src="https://s3-eu-west-1.amazonaws.com/static.wixstatic.com/media/11062b_7c61b5c8c8c8c8c8c8c8c8c8c8c8c8c8c8.mp4"
+          type="video/mp4"
+        />
+      </video>
+      <div class="video-overlay"></div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container mx-auto px-4 py-8 max-w-7xl">
+      <!-- Location Selection -->
+      <div class="bg-amazon-light p-4 sm:p-6 rounded-lg shadow-lg mb-8">
+        <h2 class="text-lg sm:text-xl font-semibold mb-4">
+          Standort auswählen
+        </h2>
+        <div
+          class="flex flex-col sm:flex-row items-start sm:items-center gap-4"
+        >
+          <div class="flex items-center w-full sm:w-auto">
+            <label for="location" class="mr-2 font-medium whitespace-nowrap"
+              >Standort:</label
+            >
+            <select
+              id="location"
+              class="bg-amazon-dark text-white p-2 rounded border border-gray-700 focus:outline-none focus:ring-2 focus:ring-amazon-orange w-full sm:w-auto"
+            >
+              <optgroup label="EU 12">
+                <option value="DUS4">DUS4</option>
+                <option value="FRA7">FRA7</option>
+                <option value="MUC3">MUC3</option>
+                <option value="PAD1">PAD1</option>
+                <option value="PAD2">PAD2</option>
+                <option value="SCN2">SCN2</option>
+                <option value="STR1">STR1</option>
+              </optgroup>
+              <optgroup label="EU 15">
+                <option value="BRE2">BRE2</option>
+                <option value="BRE4">BRE4</option>
+                <option value="ERF1">ERF1</option>
+                <option value="HAM2">HAM2</option>
+                <option value="LEJ5">LEJ5</option>
+                <option value="NEU1">NEU1</option>
+              </optgroup>
+            </select>
+          </div>
+          <div class="flex gap-2 w-full sm:w-auto">
+            <button
+              id="openAllLinks"
+              class="bg-amazon-orange hover:bg-orange-600 text-white font-bold py-2 px-4 rounded transition-colors flex-1 sm:flex-none"
+            >
+              Alle Links öffnen
+            </button>
+            <button
+              id="adminButton"
+              class="bg-amazon-dark hover:bg-amazon-dark/90 text-white font-bold py-2 px-4 rounded transition-colors flex-1 sm:flex-none"
+            >
+              Admin
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Links Display -->
+      <div
+        id="linksContainer"
+        class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+      >
+        <!-- Links will be dynamically inserted here -->
+      </div>
+    </div>
+
+    <!-- Popup Modal -->
+    <div id="popupModal" class="modal">
+      <div
+        class="bg-amazon-light p-6 rounded-lg shadow-lg w-full max-w-md fade-in"
+      >
+        <h2 class="text-2xl font-bold text-amazon-orange mb-4">
+          Wichtige Information
+        </h2>
+        <div class="space-y-4">
+          <p>
+            Um alle Links gleichzeitig öffnen zu können, müssen Sie Pop-ups für
+            diese Website erlauben.
+          </p>
+          <div class="bg-amazon-dark p-4 rounded-lg">
+            <h3 class="font-semibold mb-2">So aktivieren Sie Pop-ups:</h3>
+            <ol class="list-decimal list-inside space-y-2 text-sm">
+              <li>Klicken Sie auf das Schloss-Symbol in der Adressleiste</li>
+              <li>Wählen Sie "Website-Einstellungen"</li>
+              <li>Ändern Sie "Pop-ups und Weiterleitungen" auf "Zulassen"</li>
+              <li>Laden Sie die Seite neu</li>
+            </ol>
+          </div>
+          <div class="flex flex-col gap-2">
+            <button
+              id="testPopups"
+              class="w-full bg-amazon-orange hover:bg-orange-600 text-white font-bold py-2 px-4 rounded transition-colors"
+            >
+              Test-Pop-ups öffnen (löst Pop-up-Blocker-Meldung aus)
+            </button>
+            <button
+              id="closeModal"
+              class="w-full bg-amazon-dark hover:bg-amazon-dark/90 text-white font-bold py-2 px-4 rounded transition-colors"
+            >
+              Verstanden
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Admin Modal -->
+    <div id="adminModal" class="admin-modal">
+      <div
+        class="bg-amazon-light p-6 rounded-lg shadow-lg w-full max-w-4xl fade-in"
+      >
+        <div class="flex justify-between items-center mb-6">
+          <h2 class="text-2xl font-bold text-amazon-orange">Admin Dashboard</h2>
+          <button
+            id="closeAdminModal"
+            class="bg-amazon-dark hover:bg-amazon-dark/90 text-white font-bold py-2 px-4 rounded transition-colors"
+          >
+            Schließen
+          </button>
+        </div>
+
+        <!-- Login Form -->
+        <div id="loginForm" class="login-form">
+          <div class="bg-amazon-dark p-6 rounded-lg shadow-lg">
+            <h3 class="text-xl font-semibold mb-4">Anmeldung</h3>
+            <div class="space-y-4">
+              <div>
+                <label for="username" class="block text-sm font-medium mb-1"
+                  >Benutzername</label
+                >
+                <input
+                  type="text"
+                  id="username"
+                  class="w-full p-2 rounded bg-white/10 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-amazon-orange text-white"
+                />
+              </div>
+              <div>
+                <label for="password" class="block text-sm font-medium mb-1"
+                  >Passwort</label
+                >
+                <input
+                  type="password"
+                  id="password"
+                  class="w-full p-2 rounded bg-white/10 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-amazon-orange text-white"
+                />
+              </div>
+              <button
+                id="loginButton"
+                class="w-full bg-amazon-orange hover:bg-orange-600 text-white font-bold py-2 px-4 rounded transition-colors"
+              >
+                Anmelden
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Admin Content -->
+        <div id="adminContent" class="admin-content">
+          <div class="bg-amazon-dark p-6 rounded-lg shadow-lg mb-6">
+            <h3 class="text-xl font-semibold mb-4">Neuen Link hinzufügen</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label for="linkName" class="block text-sm font-medium mb-1"
+                  >Name</label
+                >
+                <input
+                  type="text"
+                  id="linkName"
+                  class="w-full p-2 rounded bg-white/10 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-amazon-orange text-white"
+                />
+              </div>
+              <div>
+                <label for="linkUrl" class="block text-sm font-medium mb-1"
+                  >URL</label
+                >
+                <input
+                  type="text"
+                  id="linkUrl"
+                  class="w-full p-2 rounded bg-white/10 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-amazon-orange text-white"
+                />
+              </div>
+              <div>
+                <label for="linkCategory" class="block text-sm font-medium mb-1"
+                  >Kategorie</label
+                >
+                <input
+                  type="text"
+                  id="linkCategory"
+                  class="w-full p-2 rounded bg-white/10 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-amazon-orange text-white"
+                />
+              </div>
+              <div class="flex items-end">
+                <button
+                  id="addLinkButton"
+                  class="w-full bg-amazon-orange hover:bg-orange-600 text-white font-bold py-2 px-4 rounded transition-colors"
+                >
+                  Link hinzufügen
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-amazon-dark p-6 rounded-lg shadow-lg">
+            <h3 class="text-xl font-semibold mb-4">Vorhandene Links</h3>
+            <div id="adminLinksList" class="space-y-4">
+              <!-- Links will be dynamically inserted here -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // State Management
+      let links = JSON.parse(localStorage.getItem("links") || "[]");
+      let location = localStorage.getItem("location") || "FRA7";
+      let isLoggedIn = false;
+
+      // DOM Elements
+      const locationSelect = document.getElementById("location");
+      const openAllLinksBtn = document.getElementById("openAllLinks");
+      const adminButton = document.getElementById("adminButton");
+      const popupModal = document.getElementById("popupModal");
+      const testPopupsBtn = document.getElementById("testPopups");
+      const closeModalBtn = document.getElementById("closeModal");
+      const linksContainer = document.getElementById("linksContainer");
+
+      // Admin Elements
+      const adminModal = document.getElementById("adminModal");
+      const closeAdminModal = document.getElementById("closeAdminModal");
+      const loginForm = document.getElementById("loginForm");
+      const adminContent = document.getElementById("adminContent");
+      const usernameInput = document.getElementById("username");
+      const passwordInput = document.getElementById("password");
+      const loginButton = document.getElementById("loginButton");
+      const addLinkButton = document.getElementById("addLinkButton");
+      const linkNameInput = document.getElementById("linkName");
+      const linkUrlInput = document.getElementById("linkUrl");
+      const linkCategoryInput = document.getElementById("linkCategory");
+      const adminLinksList = document.getElementById("adminLinksList");
+
+      // Initialize
+      locationSelect.value = location;
+      renderLinks();
+      renderAdminLinks();
+
+      // Event Listeners
+      locationSelect.addEventListener("change", (e) => {
+        location = e.target.value;
+        localStorage.setItem("location", location);
+        renderLinks();
+      });
+
+      openAllLinksBtn.addEventListener("click", openAllLinks);
+      adminButton.addEventListener("click", showAdminModal);
+      testPopupsBtn.addEventListener("click", triggerPopupBlocker);
+      closeModalBtn.addEventListener("click", () =>
+        popupModal.classList.remove("show")
+      );
+      closeAdminModal.addEventListener("click", () =>
+        adminModal.classList.remove("show")
+      );
+      loginButton.addEventListener("click", handleLogin);
+      addLinkButton.addEventListener("click", addLink);
+
+      // Show modal on page load
+      popupModal.classList.add("show");
+
+      // Functions
+      function renderLinks() {
+        const linksByCategory = links.reduce((acc, link) => {
+          if (!acc[link.category]) {
+            acc[link.category] = [];
+          }
+          acc[link.category].push(link);
+          return acc;
+        }, {});
+
+        if (Object.keys(linksByCategory).length === 0) {
+          linksContainer.innerHTML = `
+                    <div class="text-center py-12 col-span-full">
+                        <p class="text-gray-400">Keine Links vorhanden. Bitte fügen Sie Links im Admin-Bereich hinzu.</p>
+                    </div>
+                `;
+          return;
+        }
+
+        linksContainer.innerHTML = Object.entries(linksByCategory)
+          .map(
+            ([category, categoryLinks], index) => `
+                    <div class="bg-amazon-light p-6 rounded-lg shadow-lg fade-in" style="animation-delay: ${
+                      index * 0.1
+                    }s">
+                        <h2 class="text-2xl font-bold text-amazon-orange mb-6 capitalize">${category}</h2>
+                        <div class="space-y-4">
+                            ${categoryLinks
+                              .map(
+                                (link) => `
+                                <a href="${link.url.replace(
+                                  /FRA7|fra7/g,
+                                  location.toUpperCase()
+                                )}"
+                                   target="_blank"
+                                   rel="noopener noreferrer"
+                                   class="block p-4 bg-white/5 rounded-lg hover:bg-white/10 transition-all duration-300">
+                                    ${link.name}
+                                </a>
+                            `
+                              )
+                              .join("")}
+                        </div>
+                    </div>
+                `
+          )
+          .join("");
+      }
+
+      function openAllLinks() {
+        links.forEach((link) => {
+          const url = link.url.replace(/FRA7|fra7/g, location.toUpperCase());
+          window.open(url, "_blank");
+        });
+      }
+
+      function triggerPopupBlocker() {
+        const testUrls = [
+          "https://www.google.com",
+          "https://www.amazon.com",
+          "https://www.youtube.com",
+          "https://www.github.com",
+        ];
+
+        testUrls.forEach((url, index) => {
+          setTimeout(() => {
+            window.open(url, "_blank", "width=500,height=500");
+          }, index * 100);
+        });
+      }
+
+      function showAdminModal() {
+        adminModal.classList.add("show");
+        if (!isLoggedIn) {
+          loginForm.classList.add("show");
+          adminContent.classList.remove("show");
+        } else {
+          loginForm.classList.remove("show");
+          adminContent.classList.add("show");
+        }
+      }
+
+      function handleLogin() {
+        const username = usernameInput.value;
+        const password = passwordInput.value;
+
+        // Simple authentication (in a real app, this would be more secure)
+        if (username === "admin" && password === "admin") {
+          isLoggedIn = true;
+          loginForm.classList.remove("show");
+          adminContent.classList.add("show");
+        } else {
+          alert("Ungültige Anmeldedaten. Bitte versuchen Sie es erneut.");
+        }
+      }
+
+      function addLink() {
+        const name = linkNameInput.value.trim();
+        const url = linkUrlInput.value.trim();
+        const category = linkCategoryInput.value.trim();
+
+        if (!name || !url || !category) {
+          alert("Bitte füllen Sie alle Felder aus.");
+          return;
+        }
+
+        const newLink = {
+          id: Date.now().toString(),
+          name,
+          url,
+          category,
+        };
+
+        links.push(newLink);
+        localStorage.setItem("links", JSON.stringify(links));
+
+        // Clear inputs
+        linkNameInput.value = "";
+        linkUrlInput.value = "";
+        linkCategoryInput.value = "";
+
+        // Update UI
+        renderLinks();
+        renderAdminLinks();
+      }
+
+      function renderAdminLinks() {
+        if (links.length === 0) {
+          adminLinksList.innerHTML = `
+                    <p class="text-gray-400">Keine Links vorhanden.</p>
+                `;
+          return;
+        }
+
+        adminLinksList.innerHTML = links
+          .map(
+            (link) => `
+                    <div class="flex items-center justify-between p-4 bg-white/5 rounded-lg">
+                        <div>
+                            <h4 class="font-semibold">${link.name}</h4>
+                            <p class="text-sm text-gray-400">${link.url}</p>
+                            <p class="text-xs text-gray-500">Kategorie: ${link.category}</p>
+                        </div>
+                        <div class="flex gap-2">
+                            <button class="bg-amazon-orange hover:bg-orange-600 text-white font-bold py-1 px-2 rounded transition-colors text-sm" onclick="editLink('${link.id}')">
+                                Bearbeiten
+                            </button>
+                            <button class="bg-red-600 hover:bg-red-700 text-white font-bold py-1 px-2 rounded transition-colors text-sm" onclick="deleteLink('${link.id}')">
+                                Löschen
+                            </button>
+                        </div>
+                    </div>
+                `
+          )
+          .join("");
+      }
+
+      function editLink(id) {
+        const link = links.find((l) => l.id === id);
+        if (!link) return;
+
+        // In a real app, this would open an edit modal
+        // For simplicity, we'll just delete and prompt to add a new one
+        if (confirm(`Möchten Sie den Link "${link.name}" bearbeiten?`)) {
+          deleteLink(id);
+          linkNameInput.value = link.name;
+          linkUrlInput.value = link.url;
+          linkCategoryInput.value = link.category;
+        }
+      }
+
+      function deleteLink(id) {
+        if (confirm("Möchten Sie diesen Link wirklich löschen?")) {
+          links = links.filter((link) => link.id !== id);
+          localStorage.setItem("links", JSON.stringify(links));
+          renderLinks();
+          renderAdminLinks();
+        }
+      }
+    </script>
+  </body>
+</html>
