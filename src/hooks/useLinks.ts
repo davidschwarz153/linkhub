@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { Link } from "../types";
 
-const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000/api";
+// API_URL direkt setzen
+const API_URL = "http://localhost:5000/api";
 
 export const useLinks = () => {
   const [links, setLinks] = useState<Link[]>([]);

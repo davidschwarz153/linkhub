@@ -1,13 +1,11 @@
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { useState } from 'react';
 import MainLayout from '../layouts/MainLayout';
 import { useLinks } from '../hooks/useLinks';
 
 const Home = () => {
   const navigate = useNavigate();
   const { location, setLocation, openAllLinks, links } = useLinks();
-  const [showPopupModal, setShowPopupModal] = useState(true);
 
   // Standorte für den Dropdown
   const locations = [
@@ -23,23 +21,6 @@ const Home = () => {
     acc[link.category].push(link);
     return acc;
   }, {} as Record<string, typeof links>);
-
-  // Test-Pop-ups öffnen, um die Chrome-Pop-up-Blocker-Meldung auszulösen
-  const triggerPopupBlocker = () => {
-    // Öffne mehrere Pop-ups nacheinander, um den Pop-up-Blocker zu testen
-    const testUrls = [
-      'https://www.google.com',
-      'https://www.amazon.com',
-      'https://www.youtube.com',
-      'https://www.github.com'
-    ];
-    
-    testUrls.forEach((url, index) => {
-      setTimeout(() => {
-        window.open(url, '_blank', 'width=500,height=500');
-      }, index * 100); // Kleine Verzögerung zwischen den Öffnungen
-    });
-  };
 
   return (
     <MainLayout>
@@ -118,48 +99,6 @@ const Home = () => {
           </div>
         )}
       </div>
-
-      {/* Pop-up Anleitung Modal */}
-      {showPopupModal && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
-          <motion.div 
-            className="bg-amazon-light p-6 rounded-lg shadow-lg w-full max-w-md"
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.3 }}
-          >
-            <h2 className="text-2xl font-bold text-amazon-orange mb-4">Wichtige Information</h2>
-            <div className="space-y-4">
-              <p>
-                Um alle Links gleichzeitig öffnen zu können, müssen Sie Pop-ups für diese Website erlauben.
-              </p>
-              <div className="bg-amazon-dark p-4 rounded-lg">
-                <h3 className="font-semibold mb-2">So aktivieren Sie Pop-ups:</h3>
-                <ol className="list-decimal list-inside space-y-2 text-sm">
-                  <li>Klicken Sie auf das Schloss-Symbol in der Adressleiste</li>
-                  <li>Wählen Sie "Website-Einstellungen"</li>
-                  <li>Ändern Sie "Pop-ups und Weiterleitungen" auf "Zulassen"</li>
-                  <li>Laden Sie die Seite neu</li>
-                </ol>
-              </div>
-              <div className="flex flex-col gap-2">
-                <button
-                  onClick={triggerPopupBlocker}
-                  className="w-full bg-amazon-orange hover:bg-orange-600 text-white font-bold py-2 px-4 rounded transition-colors"
-                >
-                  Test-Pop-ups öffnen (löst Pop-up-Blocker-Meldung aus)
-                </button>
-                <button
-                  onClick={() => setShowPopupModal(false)}
-                  className="w-full bg-amazon-dark hover:bg-amazon-dark/90 text-white font-bold py-2 px-4 rounded transition-colors"
-                >
-                  Verstanden
-                </button>
-              </div>
-            </div>
-          </motion.div>
-        </div>
-      )}
     </MainLayout>
   );
 };
