@@ -11,6 +11,8 @@ export const useLinks = () => {
     return localStorage.getItem("selectedLocation") || "FRA7";
   });
 
+  const [isLoading, setIsLoading] = useState(false);
+
   // Links im localStorage speichern
   useEffect(() => {
     localStorage.setItem("links", JSON.stringify(links));
@@ -22,21 +24,27 @@ export const useLinks = () => {
   }, [location]);
 
   const addLink = (newLink: Omit<Link, "_id">) => {
+    setIsLoading(true);
     const linkWithId = {
       ...newLink,
       _id: Date.now().toString(),
     };
     setLinks([...links, linkWithId]);
+    setIsLoading(false);
   };
 
   const editLink = (editedLink: Link) => {
+    setIsLoading(true);
     setLinks(
       links.map((link) => (link._id === editedLink._id ? editedLink : link))
     );
+    setIsLoading(false);
   };
 
   const deleteLink = (id: string) => {
+    setIsLoading(true);
     setLinks(links.filter((link) => link._id !== id));
+    setIsLoading(false);
   };
 
   const openAllLinks = () => {
@@ -55,5 +63,6 @@ export const useLinks = () => {
     editLink,
     deleteLink,
     openAllLinks,
+    isLoading,
   };
 };
