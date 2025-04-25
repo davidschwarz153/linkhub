@@ -5,7 +5,7 @@ import { useLinks } from '../hooks/useLinks';
 
 const Home = () => {
   const navigate = useNavigate();
-  const { location, setLocation, openAllLinks, links } = useLinks();
+  const { location, setLocation, openAllLinks, links, isLoading, error } = useLinks();
 
   // Standorte für den Dropdown
   const locations = [
@@ -25,6 +25,14 @@ const Home = () => {
   return (
     <MainLayout>
       <div className="container mx-auto px-4 py-8 max-w-7xl">
+        {/* Fehleranzeige */}
+        {error && (
+          <div className="bg-red-500/20 border border-red-500 p-4 rounded-lg shadow-lg mb-4">
+            <h2 className="text-lg font-semibold mb-2 text-red-500">Fehler</h2>
+            <p className="text-red-500">{error}</p>
+          </div>
+        )}
+
         {/* Standort-Auswahl */}
         <div className="bg-amazon-light p-4 sm:p-6 rounded-lg shadow-lg mb-8">
           <h2 className="text-lg sm:text-xl font-semibold mb-4">Standort auswählen</h2>
@@ -66,7 +74,11 @@ const Home = () => {
         </div>
 
         {/* Links anzeigen */}
-        {Object.keys(linksByCategory).length > 0 ? (
+        {isLoading ? (
+          <div className="text-center py-12">
+            <p className="text-gray-400">Lade Links...</p>
+          </div>
+        ) : Object.keys(linksByCategory).length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {Object.entries(linksByCategory).map(([category, categoryLinks], index) => (
               <motion.div
