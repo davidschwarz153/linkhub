@@ -7,7 +7,7 @@ import { useLinks } from '../hooks/useLinks';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
-  const { links, setLinks } = useLinks();
+  const { links, addLink, editLink, deleteLink } = useLinks();
   const [newLink, setNewLink] = useState<Omit<Link, '_id'>>({
     name: '',
     url: '',
@@ -17,7 +17,6 @@ const AdminDashboard = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
 
   // Authentifizierung
   const handleLogin = (e: React.FormEvent) => {
@@ -32,72 +31,27 @@ const AdminDashboard = () => {
   };
 
   // Link hinzufügen
-  const handleAddLink = async (e: React.FormEvent) => {
+  const handleAddLink = (e: React.FormEvent) => {
     e.preventDefault();
     if (newLink.name && newLink.url) {
-      try {
-        setIsLoading(true);
-        const response = await fetch('http://localhost:5000/api/links', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(newLink),
-        });
-        const savedLink = await response.json();
-        setLinks([...links, savedLink]);
-        setNewLink({ name: '', url: '', category: 'link' });
-      } catch (err) {
-        setError('Fehler beim Hinzufügen des Links');
-        console.error(err);
-      } finally {
-        setIsLoading(false);
-      }
+      addLink(newLink);
+      setNewLink({ name: '', url: '', category: 'link' });
     }
   };
 
   // Link bearbeiten
-  const handleEditLink = async (e: React.FormEvent) => {
+  const handleEditLink = (e: React.FormEvent) => {
     e.preventDefault();
     if (editingLink) {
-      try {
-        setIsLoading(true);
-        const response = await fetch(`http://localhost:5000/api/links/${editingLink._id}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(editingLink),
-        });
-        const updatedLink = await response.json();
-        setLinks(links.map(link => 
-          link._id === updatedLink._id ? updatedLink : link
-        ));
-        setEditingLink(null);
-      } catch (err) {
-        setError('Fehler beim Aktualisieren des Links');
-        console.error(err);
-      } finally {
-        setIsLoading(false);
-      }
+      editLink(editingLink);
+      setEditingLink(null);
     }
   };
 
   // Link löschen
-  const handleDeleteLink = async (id: string) => {
+  const handleDeleteLink = (id: string) => {
     if (window.confirm('Möchtest du diesen Link wirklich löschen?')) {
-      try {
-        setIsLoading(true);
-        await fetch(`http://localhost:5000/api/links/${id}`, {
-          method: 'DELETE',
-        });
-        setLinks(links.filter(link => link._id !== id));
-      } catch (err) {
-        setError('Fehler beim Löschen des Links');
-        console.error(err);
-      } finally {
-        setIsLoading(false);
-      }
+      deleteLink(id);
     }
   };
 
@@ -206,9 +160,8 @@ const AdminDashboard = () => {
               <button
                 type="submit"
                 className="w-full bg-amazon-orange hover:bg-orange-600 text-white font-bold py-2 px-4 rounded transition-colors"
-                disabled={isLoading}
               >
-                {isLoading ? 'Wird gespeichert...' : 'Link hinzufügen'}
+                Link hinzufügen
               </button>
             </form>
           </div>
@@ -230,16 +183,14 @@ const AdminDashboard = () => {
                     <button
                       onClick={() => setEditingLink(link)}
                       className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded mr-2"
-                      disabled={isLoading}
                     >
                       Bearbeiten
                     </button>
                     <button
                       onClick={() => handleDeleteLink(link._id)}
                       className="bg-red-600 hover:bg-red-700 text-white font-bold py-1 px-2 rounded"
-                      disabled={isLoading}
                     >
-                      {isLoading ? 'Wird gelöscht...' : 'Löschen'}
+                      Löschen
                     </button>
                   </div>
                 </div>
