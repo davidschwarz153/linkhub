@@ -7,9 +7,6 @@ import {
   deleteLink,
 } from "../lib/supabase";
 
-// API_URL direkt setzen
-const API_URL = "http://localhost:5000/api";
-
 export const useLinks = () => {
   const [links, setLinks] = useState<Link[]>([]);
   const [location, setLocation] = useState<string>(() => {

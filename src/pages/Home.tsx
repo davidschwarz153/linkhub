@@ -80,7 +80,7 @@ const Home = () => {
                 <div className="space-y-4">
                   {categoryLinks.map((link) => (
                     <a
-                      key={link._id}
+                      key={link.id}
                       href={link.url.replace(/FRA7|fra7/g, location.toUpperCase())}
                       target="_blank"
                       rel="noopener noreferrer"
