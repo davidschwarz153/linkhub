@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Home from './pages/Home';
 import AdminDashboard from './pages/AdminDashboard';
 import { WelcomePopup } from "./components/WelcomePopup";
+import { ThemeProvider } from "./context/ThemeContext";
 
 const App = () => {
   const [showWelcomePopup, setShowWelcomePopup] = useState(false);
@@ -20,13 +21,15 @@ const App = () => {
   };
 
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/admin" element={<AdminDashboard />} />
-      </Routes>
-      {showWelcomePopup && <WelcomePopup onClose={handleCloseWelcome} />}
-    </Router>
+    <ThemeProvider>
+      <Router>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/admin" element={<AdminDashboard />} />
+        </Routes>
+        {showWelcomePopup && <WelcomePopup onClose={handleCloseWelcome} />}
+      </Router>
+    </ThemeProvider>
   );
 };
 

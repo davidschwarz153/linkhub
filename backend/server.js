@@ -1,6 +1,7 @@
 const express = require('express');
-const mongoose = require('mongoose');
 const cors = require('cors');
+const fs = require('fs');
+const path = require('path');
 require('dotenv').config();
 
 const app = express();
@@ -9,61 +10,78 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// MongoDB Verbindung
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/operations-dashboard', {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-});
+// Pfad zur JSON-Datei
+const dataFilePath = path.join(__dirname, 'data', 'links.json');
 
-// Link Schema
-const linkSchema = new mongoose.Schema({
-  name: String,
-  url: String,
-  category: String,
-  _id: String
-});
+// Stelle sicher, dass das Verzeichnis existiert
+if (!fs.existsSync(path.join(__dirname, 'data'))) {
+  fs.mkdirSync(path.join(__dirname, 'data'));
+}
 
-const Link = mongoose.model('Link', linkSchema);
+// Stelle sicher, dass die JSON-Datei existiert
+if (!fs.existsSync(dataFilePath)) {
+  fs.writeFileSync(dataFilePath, JSON.stringify([]));
+}
+
+// Hilfsfunktion zum Lesen der Links
+const readLinks = () => {
+  try {
+    const data = fs.readFileSync(dataFilePath, 'utf8');
+    return JSON.parse(data);
+  } catch (error) {
+    console.error('Fehler beim Lesen der Links:', error);
+    return [];
+  }
+};
+
+// Hilfsfunktion zum Schreiben der Links
+const writeLinks = (links) => {
+  try {
+    fs.writeFileSync(dataFilePath, JSON.stringify(links, null, 2));
+  } catch (error) {
+    console.error('Fehler beim Schreiben der Links:', error);
+  }
+};
 
 // Routes
-app.get('/api/links', async (req, res) => {
-  try {
-    const links = await Link.find();
-    res.json(links);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+app.get('/api/links', (req, res) => {
+  const links = readLinks();
+  res.json(links);
+});
+
+app.post('/api/links', (req, res) => {
+  const links = readLinks();
+  const newLink = req.body;
+  links.push(newLink);
+  writeLinks(links);
+  res.status(201).json(newLink);
+});
+
+app.put('/api/links/:id', (req, res) => {
+  const links = readLinks();
+  const id = req.params.id;
+  const updatedLink = req.body;
+  
+  const index = links.findIndex(link => link._id === id);
+  if (index !== -1) {
+    links[index] = updatedLink;
+    writeLinks(links);
+    res.json(updatedLink);
+  } else {
+    res.status(404).json({ message: 'Link nicht gefunden' });
   }
 });
 
-app.post('/api/links', async (req, res) => {
-  try {
-    const link = new Link(req.body);
-    await link.save();
-    res.status(201).json(link);
-  } catch (error) {
-    res.status(400).json({ message: error.message });
-  }
-});
-
-app.put('/api/links/:id', async (req, res) => {
-  try {
-    const link = await Link.findOneAndUpdate(
-      { _id: req.params.id },
-      req.body,
-      { new: true }
-    );
-    res.json(link);
-  } catch (error) {
-    res.status(400).json({ message: error.message });
-  }
-});
-
-app.delete('/api/links/:id', async (req, res) => {
-  try {
-    await Link.findOneAndDelete({ _id: req.params.id });
+app.delete('/api/links/:id', (req, res) => {
+  const links = readLinks();
+  const id = req.params.id;
+  
+  const filteredLinks = links.filter(link => link._id !== id);
+  if (filteredLinks.length !== links.length) {
+    writeLinks(filteredLinks);
     res.json({ message: 'Link gelöscht' });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+  } else {
+    res.status(404).json({ message: 'Link nicht gefunden' });
   }
 });
 
