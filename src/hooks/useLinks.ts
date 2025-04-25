@@ -1,5 +1,11 @@
 import { useState, useEffect } from "react";
-import { Link } from "../types";
+import {
+  Link,
+  getLinks,
+  addLink,
+  updateLink,
+  deleteLink,
+} from "../lib/supabase";
 
 // API_URL direkt setzen
 const API_URL = "http://localhost:5000/api";
@@ -11,13 +17,12 @@ export const useLinks = () => {
   });
   const [isLoading, setIsLoading] = useState(false);
 
-  // Links vom Backend laden
+  // Links von Supabase laden
   useEffect(() => {
     const fetchLinks = async () => {
       setIsLoading(true);
       try {
-        const response = await fetch(`${API_URL}/links`);
-        const data = await response.json();
+        const data = await getLinks();
         setLinks(data);
       } catch (error) {
         console.error("Fehler beim Laden der Links:", error);
@@ -33,54 +38,48 @@ export const useLinks = () => {
     localStorage.setItem("selectedLocation", location);
   }, [location]);
 
-  const addLink = async (newLink: Omit<Link, "_id">) => {
+  const addNewLink = async (
+    newLink: Omit<Link, "id" | "created_at" | "updated_at">
+  ) => {
     setIsLoading(true);
     try {
-      const response = await fetch(`${API_URL}/links`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          ...newLink,
-          _id: Date.now().toString(),
-        }),
-      });
-      const savedLink = await response.json();
-      setLinks([...links, savedLink]);
+      const savedLink = await addLink(newLink);
+      if (savedLink) {
+        setLinks([...links, savedLink]);
+      }
     } catch (error) {
       console.error("Fehler beim Hinzufügen des Links:", error);
     }
     setIsLoading(false);
   };
 
-  const editLink = async (editedLink: Link) => {
+  const editExistingLink = async (editedLink: Link) => {
     setIsLoading(true);
     try {
-      const response = await fetch(`${API_URL}/links/${editedLink._id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(editedLink),
+      const updatedLink = await updateLink(editedLink.id, {
+        name: editedLink.name,
+        url: editedLink.url,
+        category: editedLink.category,
       });
-      const updatedLink = await response.json();
-      setLinks(
-        links.map((link) => (link._id === updatedLink._id ? updatedLink : link))
-      );
+
+      if (updatedLink) {
+        setLinks(
+          links.map((link) => (link.id === updatedLink.id ? updatedLink : link))
+        );
+      }
     } catch (error) {
       console.error("Fehler beim Bearbeiten des Links:", error);
     }
     setIsLoading(false);
   };
 
-  const deleteLink = async (id: string) => {
+  const removeLink = async (id: string) => {
     setIsLoading(true);
     try {
-      await fetch(`${API_URL}/links/${id}`, {
-        method: "DELETE",
-      });
-      setLinks(links.filter((link) => link._id !== id));
+      const success = await deleteLink(id);
+      if (success) {
+        setLinks(links.filter((link) => link.id !== id));
+      }
     } catch (error) {
       console.error("Fehler beim Löschen des Links:", error);
     }
@@ -99,9 +98,9 @@ export const useLinks = () => {
     setLinks,
     location,
     setLocation,
-    addLink,
-    editLink,
-    deleteLink,
+    addLink: addNewLink,
+    editLink: editExistingLink,
+    deleteLink: removeLink,
     openAllLinks,
     isLoading,
   };

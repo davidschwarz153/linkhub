@@ -6,12 +6,12 @@ import { ThemeProvider } from "./context/ThemeContext";
 const App = () => {
   return (
     <ThemeProvider>
-      <Router>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/admin" element={<AdminDashboard />} />
-        </Routes>
-      </Router>
+    <Router>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/admin" element={<AdminDashboard />} />
+      </Routes>
+    </Router>
     </ThemeProvider>
   );
 };

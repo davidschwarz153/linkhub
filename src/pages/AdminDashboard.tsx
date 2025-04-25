@@ -8,7 +8,7 @@ import { useLinks } from '../hooks/useLinks';
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const { links, addLink, editLink, deleteLink } = useLinks();
-  const [newLink, setNewLink] = useState<Omit<Link, '_id'>>({
+  const [newLink, setNewLink] = useState<Omit<Link, 'id' | 'created_at' | 'updated_at'>>({
     name: '',
     url: '',
     category: 'link'
@@ -172,7 +172,7 @@ const AdminDashboard = () => {
             <div className="space-y-4">
               {links.map(link => (
                 <div
-                  key={link._id}
+                  key={link.id}
                   className="bg-amazon-dark p-4 rounded-lg flex flex-col sm:flex-row items-start sm:items-center gap-4"
                 >
                   <div className="flex-1 min-w-0">
@@ -187,7 +187,7 @@ const AdminDashboard = () => {
                       Bearbeiten
                     </button>
                     <button
-                      onClick={() => handleDeleteLink(link._id)}
+                      onClick={() => handleDeleteLink(link.id)}
                       className="bg-red-600 hover:bg-red-700 text-white font-bold py-1 px-2 rounded"
                     >
                       Löschen
