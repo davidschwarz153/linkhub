@@ -8,7 +8,7 @@ import { useLinks } from '../hooks/useLinks';
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const { links, setLinks } = useLinks();
-  const [newLink, setNewLink] = useState<Omit<Link, 'id'>>({
+  const [newLink, setNewLink] = useState<Omit<Link, '_id'>>({
     name: '',
     url: '',
     category: 'link'
@@ -17,6 +17,7 @@ const AdminDashboard = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   // Authentifizierung
   const handleLogin = (e: React.FormEvent) => {
@@ -31,33 +32,72 @@ const AdminDashboard = () => {
   };
 
   // Link hinzufügen
-  const handleAddLink = (e: React.FormEvent) => {
+  const handleAddLink = async (e: React.FormEvent) => {
     e.preventDefault();
     if (newLink.name && newLink.url) {
-      const linkWithId = {
-        ...newLink,
-        id: Date.now().toString()
-      };
-      setLinks([...links, linkWithId]);
-      setNewLink({ name: '', url: '', category: 'link' });
+      try {
+        setIsLoading(true);
+        const response = await fetch('http://localhost:5000/api/links', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(newLink),
+        });
+        const savedLink = await response.json();
+        setLinks([...links, savedLink]);
+        setNewLink({ name: '', url: '', category: 'link' });
+      } catch (err) {
+        setError('Fehler beim Hinzufügen des Links');
+        console.error(err);
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
   // Link bearbeiten
-  const handleEditLink = (e: React.FormEvent) => {
+  const handleEditLink = async (e: React.FormEvent) => {
     e.preventDefault();
     if (editingLink) {
-      setLinks(links.map(link => 
-        link.id === editingLink.id ? editingLink : link
-      ));
-      setEditingLink(null);
+      try {
+        setIsLoading(true);
+        const response = await fetch(`http://localhost:5000/api/links/${editingLink._id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(editingLink),
+        });
+        const updatedLink = await response.json();
+        setLinks(links.map(link => 
+          link._id === updatedLink._id ? updatedLink : link
+        ));
+        setEditingLink(null);
+      } catch (err) {
+        setError('Fehler beim Aktualisieren des Links');
+        console.error(err);
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
   // Link löschen
-  const handleDeleteLink = (id: string) => {
+  const handleDeleteLink = async (id: string) => {
     if (window.confirm('Möchtest du diesen Link wirklich löschen?')) {
-      setLinks(links.filter(link => link.id !== id));
+      try {
+        setIsLoading(true);
+        await fetch(`http://localhost:5000/api/links/${id}`, {
+          method: 'DELETE',
+        });
+        setLinks(links.filter(link => link._id !== id));
+      } catch (err) {
+        setError('Fehler beim Löschen des Links');
+        console.error(err);
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -166,8 +206,9 @@ const AdminDashboard = () => {
               <button
                 type="submit"
                 className="w-full bg-amazon-orange hover:bg-orange-600 text-white font-bold py-2 px-4 rounded transition-colors"
+                disabled={isLoading}
               >
-                Link hinzufügen
+                {isLoading ? 'Wird gespeichert...' : 'Link hinzufügen'}
               </button>
             </form>
           </div>
@@ -176,9 +217,9 @@ const AdminDashboard = () => {
           <div className="bg-amazon-light p-6 rounded-lg shadow-lg">
             <h2 className="text-xl font-semibold mb-4">Links verwalten</h2>
             <div className="space-y-4">
-              {links.map((link) => (
+              {links.map(link => (
                 <div
-                  key={link.id}
+                  key={link._id}
                   className="bg-amazon-dark p-4 rounded-lg flex flex-col sm:flex-row items-start sm:items-center gap-4"
                 >
                   <div className="flex-1 min-w-0">
@@ -188,15 +229,17 @@ const AdminDashboard = () => {
                   <div className="flex gap-2 w-full sm:w-auto">
                     <button
                       onClick={() => setEditingLink(link)}
-                      className="bg-amazon-orange hover:bg-orange-600 text-white font-bold py-1 px-3 rounded transition-colors flex-1 sm:flex-none text-sm"
+                      className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded mr-2"
+                      disabled={isLoading}
                     >
                       Bearbeiten
                     </button>
                     <button
-                      onClick={() => handleDeleteLink(link.id)}
-                      className="bg-red-600 hover:bg-red-700 text-white font-bold py-1 px-3 rounded transition-colors flex-1 sm:flex-none text-sm"
+                      onClick={() => handleDeleteLink(link._id)}
+                      className="bg-red-600 hover:bg-red-700 text-white font-bold py-1 px-2 rounded"
+                      disabled={isLoading}
                     >
-                      Löschen
+                      {isLoading ? 'Wird gelöscht...' : 'Löschen'}
                     </button>
                   </div>
                 </div>

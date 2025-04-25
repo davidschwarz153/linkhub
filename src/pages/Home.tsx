@@ -99,7 +99,7 @@ const Home = () => {
                 <div className="space-y-4">
                   {categoryLinks.map((link) => (
                     <a
-                      key={link.id}
+                      key={link._id}
                       href={link.url.replace(/FRA7|fra7/g, location.toUpperCase())}
                       target="_blank"
                       rel="noopener noreferrer"

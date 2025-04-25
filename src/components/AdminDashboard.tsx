@@ -2,13 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import BackgroundVideo from './BackgroundVideo';
-
-interface Link {
-  id: string;
-  name: string;
-  url: string;
-  category: 'link' | 'tool';
-}
+import { Link } from '../services/api';
 
 // Standorte für den Dropdown
 const locations = [
@@ -19,7 +13,7 @@ const locations = [
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const [links, setLinks] = useState<Link[]>([]);
-  const [newLink, setNewLink] = useState<Omit<Link, 'id'>>({
+  const [newLink, setNewLink] = useState<Omit<Link, '_id'>>({
     name: '',
     url: '',
     category: 'link'
@@ -29,27 +23,26 @@ const AdminDashboard = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [selectedLocation, setSelectedLocation] = useState('FRA7');
+  const [isLoading, setIsLoading] = useState(false);
 
-  // Laden der Links aus dem localStorage
+  // Laden der Links vom Server
   useEffect(() => {
-    const savedLinks = localStorage.getItem('adminLinks');
-    const savedLocation = localStorage.getItem('userLocation');
-    
-    if (savedLinks) {
-      setLinks(JSON.parse(savedLinks));
-    }
-    
-    if (savedLocation) {
-      setSelectedLocation(savedLocation);
-    }
+    const fetchLinks = async () => {
+      try {
+        setIsLoading(true);
+        const response = await fetch('http://localhost:5000/api/links');
+        const data = await response.json();
+        setLinks(data);
+      } catch (err) {
+        setError('Fehler beim Laden der Links');
+        console.error(err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchLinks();
   }, []);
-
-  // Speichern der Links im localStorage
-  useEffect(() => {
-    if (links.length > 0) {
-      localStorage.setItem('adminLinks', JSON.stringify(links));
-    }
-  }, [links]);
 
   // Standort im localStorage speichern
   useEffect(() => {
@@ -74,33 +67,72 @@ const AdminDashboard = () => {
   };
 
   // Link hinzufügen
-  const handleAddLink = (e: React.FormEvent) => {
+  const handleAddLink = async (e: React.FormEvent) => {
     e.preventDefault();
     if (newLink.name && newLink.url) {
-      const linkWithId = {
-        ...newLink,
-        id: Date.now().toString()
-      };
-      setLinks([...links, linkWithId]);
-      setNewLink({ name: '', url: '', category: 'link' });
+      try {
+        setIsLoading(true);
+        const response = await fetch('http://localhost:5000/api/links', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(newLink),
+        });
+        const savedLink = await response.json();
+        setLinks([...links, savedLink]);
+        setNewLink({ name: '', url: '', category: 'link' });
+      } catch (err) {
+        setError('Fehler beim Hinzufügen des Links');
+        console.error(err);
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
   // Link bearbeiten
-  const handleEditLink = (e: React.FormEvent) => {
+  const handleEditLink = async (e: React.FormEvent) => {
     e.preventDefault();
     if (editingLink) {
-      setLinks(links.map(link => 
-        link.id === editingLink.id ? editingLink : link
-      ));
-      setEditingLink(null);
+      try {
+        setIsLoading(true);
+        const response = await fetch(`http://localhost:5000/api/links/${editingLink._id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(editingLink),
+        });
+        const updatedLink = await response.json();
+        setLinks(links.map(link => 
+          link._id === updatedLink._id ? updatedLink : link
+        ));
+        setEditingLink(null);
+      } catch (err) {
+        setError('Fehler beim Aktualisieren des Links');
+        console.error(err);
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
   // Link löschen
-  const handleDeleteLink = (id: string) => {
+  const handleDeleteLink = async (id: string) => {
     if (window.confirm('Möchtest du diesen Link wirklich löschen?')) {
-      setLinks(links.filter(link => link.id !== id));
+      try {
+        setIsLoading(true);
+        await fetch(`http://localhost:5000/api/links/${id}`, {
+          method: 'DELETE',
+        });
+        setLinks(links.filter(link => link._id !== id));
+      } catch (err) {
+        setError('Fehler beim Löschen des Links');
+        console.error(err);
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -248,8 +280,9 @@ const AdminDashboard = () => {
                   <button
                     type="submit"
                     className="bg-amazon-orange hover:bg-orange-600 text-white font-bold py-2 px-4 rounded transition-colors"
+                    disabled={isLoading}
                   >
-                    Link hinzufügen
+                    {isLoading ? 'Wird gespeichert...' : 'Link hinzufügen'}
                   </button>
                 </div>
               </form>
@@ -270,8 +303,8 @@ const AdminDashboard = () => {
                   </thead>
                   <tbody>
                     {links.map(link => (
-                      <tr key={link.id} className="border-b border-gray-700">
-                        {editingLink && editingLink.id === link.id ? (
+                      <tr key={link._id} className="border-b border-gray-700">
+                        {editingLink && editingLink._id === link._id ? (
                           <>
                             <td className="py-2">
                               <input
@@ -303,12 +336,14 @@ const AdminDashboard = () => {
                               <button
                                 onClick={handleEditLink}
                                 className="bg-green-600 hover:bg-green-700 text-white font-bold py-1 px-2 rounded mr-2"
+                                disabled={isLoading}
                               >
-                                Speichern
+                                {isLoading ? 'Wird gespeichert...' : 'Speichern'}
                               </button>
                               <button
                                 onClick={() => setEditingLink(null)}
                                 className="bg-gray-600 hover:bg-gray-700 text-white font-bold py-1 px-2 rounded"
+                                disabled={isLoading}
                               >
                                 Abbrechen
                               </button>
@@ -332,12 +367,14 @@ const AdminDashboard = () => {
                               <button
                                 onClick={() => setEditingLink(link)}
                                 className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded mr-2"
+                                disabled={isLoading}
                               >
                                 Bearbeiten
                               </button>
                               <button
-                                onClick={() => handleDeleteLink(link.id)}
+                                onClick={() => handleDeleteLink(link._id)}
                                 className="bg-red-600 hover:bg-red-700 text-white font-bold py-1 px-2 rounded"
+                                disabled={isLoading}
                               >
                                 Löschen
                               </button>
