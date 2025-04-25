@@ -90,12 +90,12 @@ const AdminDashboard = () => {
 
   return (
     <MainLayout>
-      <div className="container mx-auto px-4 py-8 max-w-7xl">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-white">Admin Dashboard</h1>
+      <div className="container mx-auto px-4 py-4 sm:py-8 max-w-7xl">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold text-white">Admin Dashboard</h1>
           <motion.button
             onClick={() => navigate('/')}
-            className="bg-amazon-dark hover:bg-amazon-dark/90 text-white font-bold py-2 px-4 rounded transition-colors"
+            className="w-full sm:w-auto bg-amazon-dark hover:bg-amazon-dark/90 text-white font-bold py-2 px-4 rounded transition-colors"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
@@ -107,15 +107,15 @@ const AdminDashboard = () => {
         {error && (
           <div className="bg-red-500/20 border border-red-500 p-4 rounded-lg shadow-lg mb-4">
             <h2 className="text-lg font-semibold mb-2 text-red-500">Fehler</h2>
-            <p className="text-red-500">{error}</p>
+            <p className="text-red-500 break-words">{error}</p>
           </div>
         )}
 
         {/* Link hinzufügen */}
-        <div className="bg-amazon-light p-6 rounded-lg shadow-lg mb-8">
+        <div className="bg-amazon-light p-4 sm:p-6 rounded-lg shadow-lg mb-6 sm:mb-8">
           <h2 className="text-xl font-bold text-white mb-4">Neuen Link hinzufügen</h2>
           <form onSubmit={handleAddLink} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label htmlFor="name" className="block text-sm font-medium text-gray-300 mb-1">
                   Name
@@ -164,7 +164,7 @@ const AdminDashboard = () => {
               <button
                 type="submit"
                 disabled={isAddingLink}
-                className="bg-amazon-orange hover:bg-orange-600 text-white font-bold py-2 px-4 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full sm:w-auto bg-amazon-orange hover:bg-orange-600 text-white font-bold py-2 px-4 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isAddingLink ? 'Wird hinzugefügt...' : 'Link hinzufügen'}
               </button>
@@ -174,10 +174,10 @@ const AdminDashboard = () => {
 
         {/* Link bearbeiten */}
         {editingLink && (
-          <div className="bg-amazon-light p-6 rounded-lg shadow-lg mb-8">
+          <div className="bg-amazon-light p-4 sm:p-6 rounded-lg shadow-lg mb-6 sm:mb-8">
             <h2 className="text-xl font-bold text-white mb-4">Link bearbeiten</h2>
             <form onSubmit={handleEditLink} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label htmlFor="edit-name" className="block text-sm font-medium text-gray-300 mb-1">
                     Name
@@ -222,18 +222,18 @@ const AdminDashboard = () => {
                   ))}
                 </select>
               </div>
-              <div className="flex justify-end gap-2">
+              <div className="flex flex-col sm:flex-row justify-end gap-2">
                 <button
                   type="button"
                   onClick={resetForm}
-                  className="bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded transition-colors"
+                  className="w-full sm:w-auto bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded transition-colors"
                 >
                   Abbrechen
                 </button>
                 <button
                   type="submit"
                   disabled={isEditing}
-                  className="bg-amazon-orange hover:bg-orange-600 text-white font-bold py-2 px-4 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full sm:w-auto bg-amazon-orange hover:bg-orange-600 text-white font-bold py-2 px-4 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isEditing ? 'Wird gespeichert...' : 'Änderungen speichern'}
                 </button>
@@ -243,68 +243,74 @@ const AdminDashboard = () => {
         )}
 
         {/* Links anzeigen */}
-        <div className="bg-amazon-light p-6 rounded-lg shadow-lg">
+        <div className="bg-amazon-light p-4 sm:p-6 rounded-lg shadow-lg">
           <h2 className="text-xl font-bold text-white mb-4">Vorhandene Links</h2>
           {isLoading ? (
             <div className="text-center py-12">
               <p className="text-gray-400">Lade Links...</p>
             </div>
           ) : links.length > 0 ? (
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-700">
-                <thead>
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                      Name
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                      URL
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                      Kategorie
-                    </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-300 uppercase tracking-wider">
-                      Aktionen
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-700">
-                  {links.map((link) => (
-                    <tr key={link.id} className="hover:bg-white/5">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-white">
-                        {link.name}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-white">
-                        <a
-                          href={link.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-amazon-orange hover:underline"
-                        >
-                          {link.url}
-                        </a>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-white capitalize">
-                        {link.category}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <button
-                          onClick={() => selectLinkForEdit(link)}
-                          className="text-blue-400 hover:text-blue-300 mr-3"
-                        >
-                          Bearbeiten
-                        </button>
-                        <button
-                          onClick={() => selectLinkForDelete(link)}
-                          className="text-red-400 hover:text-red-300"
-                        >
-                          Löschen
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div className="overflow-x-auto -mx-4 sm:mx-0">
+              <div className="min-w-full inline-block align-middle">
+                <div className="overflow-hidden">
+                  <table className="min-w-full divide-y divide-gray-700">
+                    <thead>
+                      <tr>
+                        <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                          Name
+                        </th>
+                        <th className="hidden sm:table-cell px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                          URL
+                        </th>
+                        <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                          Kategorie
+                        </th>
+                        <th className="px-3 sm:px-6 py-3 text-right text-xs font-medium text-gray-300 uppercase tracking-wider">
+                          Aktionen
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-700">
+                      {links.map((link) => (
+                        <tr key={link.id} className="hover:bg-white/5">
+                          <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-white">
+                            {link.name}
+                          </td>
+                          <td className="hidden sm:table-cell px-6 py-4 whitespace-nowrap text-sm text-white">
+                            <a
+                              href={link.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-amazon-orange hover:underline"
+                            >
+                              {link.url}
+                            </a>
+                          </td>
+                          <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-white capitalize">
+                            {link.category}
+                          </td>
+                          <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-3">
+                              <button
+                                onClick={() => selectLinkForEdit(link)}
+                                className="text-blue-400 hover:text-blue-300"
+                              >
+                                Bearbeiten
+                              </button>
+                              <button
+                                onClick={() => selectLinkForDelete(link)}
+                                className="text-red-400 hover:text-red-300"
+                              >
+                                Löschen
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             </div>
           ) : (
             <div className="text-center py-12">
